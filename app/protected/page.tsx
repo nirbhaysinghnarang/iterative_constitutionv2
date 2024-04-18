@@ -4,9 +4,23 @@ import { redirect } from "next/navigation";
 import { getData } from "../data/fetchDataset";
 import SurveyClient from "./survey-client";
 
+
+
+
+
 export default async function SurveyCollection() {
   const data = await getData()
   const supabase = createClient();
+
+
+
+
+  
+
+
+
+
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

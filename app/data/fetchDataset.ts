@@ -8,7 +8,7 @@ export async function getData(): Promise<Dataset> {
     const filePath = `${process.cwd()}/app/data/dataset.csv`;
     const fileContent = await fs.readFile(filePath, 'utf8');
     const parsedData = Papa.parse(fileContent, { header: true }).data;
-    const extractedData = parsedData.slice(0,100).map((row: any, index) => ({
+    const extractedData = parsedData.slice(0,5).map((row: any, index) => ({
       description: row['context'],
       choiceA: row['action1'],
       choiceB: row['action2'],

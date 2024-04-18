@@ -20,9 +20,12 @@ export type LMResponse = {
 
 // Define 'Row' as an object type to encapsulate the scenario, the language model's response, and the user's response
 export type Row = {
-    scenario: scenario,   // The scenario being responded to
-    lmResponse: LMResponse,  // Response from the language model
-    userResponse: choice  // The choice made by the user, either "A" or "B"
+    description: string,  // Text description of the scenario
+    choiceA: string,      // Description of what choice "A" entails
+    choiceB: string,
+    id:number  
+    lmResponse: LMResponse|null,  // Response from the language model
+    userResponse: choice|null  // The choice made by the user, either "A" or "B"
 };
 
 
@@ -41,7 +44,6 @@ export type Dataset = scenario[];
 // Define 'Iteration' as an object type to capture a set of scenarios and responses in a specific iteration
 export type Iteration = {
     const:constitution
-    dataset: Dataset,     // Collection of scenarios used in this iteration
     count: number,        // Count of scenarios considered in this iteration
     responses: Row[]      // Array of 'Row' objects containing responses to each scenario
 };

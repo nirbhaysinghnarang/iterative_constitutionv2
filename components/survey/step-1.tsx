@@ -7,7 +7,8 @@ import Stack from "@mui/material/Stack";
 
 
 type Step1ComponentProps = {
-    dataset: Dataset
+    dataset: Dataset,
+    passUpResults:(res:Baseline[])=>void
 }
 
 interface EditableChipCellProps {
@@ -16,7 +17,7 @@ interface EditableChipCellProps {
     field: string;
 }
 
-const EditableChipCell: React.FC<EditableChipCellProps> = ({ id, value, field }) => {
+export const EditableChipCell: React.FC<EditableChipCellProps> = ({ id, value, field }) => {
     const apiRef = useGridApiContext();
     const [inputValue, setInputValue] = useState(value);
 
@@ -42,7 +43,7 @@ const EditableChipCell: React.FC<EditableChipCellProps> = ({ id, value, field })
     );
 };
 
-const RenderChipCell = (params: GridRenderCellParams<any>) => {
+export const RenderChipCell = (params: GridRenderCellParams<any>) => {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             {params.value ? <Chip label={params.value} color="primary" /> : <Chip label="Invalid" color="error" />}
@@ -51,7 +52,7 @@ const RenderChipCell = (params: GridRenderCellParams<any>) => {
 };
 
 
-export default function Step1Component({ dataset }: Step1ComponentProps) {
+export default function Step1Component({ dataset,passUpResults }: Step1ComponentProps) {
 
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
         dataset.map(row => { return { ...row, userResponse: null } })
@@ -135,6 +136,7 @@ export default function Step1Component({ dataset }: Step1ComponentProps) {
             <Stack direction="row" alignItems={"center"} justifyContent={"center"} spacing={1}> 
                 <Typography sx={{color:"purple"}}>{numFilled}/{baselineResults.length} filled </Typography>
                 <Button
+                    onClick={()=>{passUpResults(baselineResults)}}
                     disabled={numFilled !== baselineResults.length}
                     className="bg-purple-950 text-white hover:bg-purple-1000"
                     variant="contained">
