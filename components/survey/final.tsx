@@ -1,5 +1,5 @@
 import { invokeLLM } from "@/app/lm/invokeLM";
-import { Baseline, Dataset, Iteration, LMResponse, Row, constitution } from "@/app/typing/types";
+import { Baseline, Dataset, Iteration, LMResponse, Row, SurveyResults, constitution } from "@/app/typing/types";
 import { TextField, Typography, Button, Chip, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import Box from "@mui/material/Box";
@@ -7,6 +7,7 @@ import { RenderChipCell, EditableChipCell } from "./step-1";
 import { GridRenderEditCellParams } from "@mui/x-data-grid/models/params/gridCellParams";
 import { capitalizeFirstLetter } from "./iteration";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { publishResults } from "@/app/publish/publish.client";
 
 interface FinalComponentProps {
     c: constitution,
@@ -42,16 +43,16 @@ function RenderChoiceCell(params: any) {
     );
 }
 
-function getValueChoice(_: any, row:any) {
-    
+function getValueChoice(_: any, row: any) {
+
     return row && row.lmResponse ? row.lmResponse.choice : null;
 }
 
-function getValueRationale(_: any, row:any) {
+function getValueRationale(_: any, row: any) {
     return row && row.lmResponse ? row.lmResponse.rationale : null;
 }
 
-function getValueMatch(_: any, row:any) {
+function getValueMatch(_: any, row: any) {
     return row && row.lmResponse && row.userResponse ? row.lmResponse.choice === row.userResponse : false;
 }
 
@@ -67,7 +68,7 @@ function RenderMatchChip(params: any) {
     );
 }
 
-const datagridCols:GridColDef<Row>[] = [
+const datagridCols: GridColDef<Row>[] = [
     { field: 'description', headerName: 'Description', width: 300, renderCell: RenderDescriptionCell },
     { field: 'choiceA', headerName: 'Choice A', width: 300, renderCell: RenderChoiceCell },
     { field: 'choiceB', headerName: 'Choice B', width: 300, renderCell: RenderChoiceCell },
@@ -83,6 +84,8 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
     }));
     const [loading, setLoading] = useState(false);
     const [accuracy, setAccuracy] = useState<number | null>(null);
+
+    const [res, setRes] = useState<SurveyResults|null>(null);
 
     const calculateAccuracy = (rows: Row[]) => {
         const total = rows.length;
@@ -107,6 +110,17 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
         setRows(updatedRows);
         setAccuracy(calculateAccuracy(updatedRows));
         setLoading(false);
+
+        setRes(
+            {
+                iterations:iterations,
+                constitution:c,
+                initialRows:baseline,
+                modelAccuracy:calculateAccuracy(updatedRows)
+            }
+        )
+
+
     };
 
     return (
@@ -134,6 +148,17 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
                 <Typography variant="h6" style={{ marginTop: 20 }}>
                     Model Accuracy: {accuracy.toFixed(2)}%
                 </Typography>
+
+            )}
+
+
+            {accuracy !== null && res && (
+                <Button className="bg-purple-950 text-white hover:bg-purple-1000" variant="contained"
+                onClick={()=>{publishResults(res)}}
+                >
+                    Publish results
+
+                </Button>
             )}
 
             {rows.length > 0 && (
@@ -142,13 +167,6 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
                     columns={datagridCols}
                     pagination={true}
                     rowHeight={150}
-                    // onCellEditCommit={(params:any) => {
-                    //     const newRows = rows.map(row =>
-                    //         row.id === params.id ? { ...row, [params.field]: params.value } : row
-                    //     );
-                    //     setRows(newRows);
-                    //     setAccuracy(calculateAccuracy(newRows));
-                    // }}
                 />
             )}
         </div>

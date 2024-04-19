@@ -52,4 +52,6 @@ export type Iteration = {
 export type SurveyResults = {
     iterations:Iteration[],
     initialRows:Baseline[];
+    modelAccuracy:number;
+    constitution:constitution
 }

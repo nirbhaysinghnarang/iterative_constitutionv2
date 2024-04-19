@@ -45,7 +45,6 @@ export default function SurveyClient({ dataset }: SurveyClientProps) {
 
 
     useEffect(() => {
-        console.log(iterations)
         if (iterations.length > 0) {
             setStep(s => s + 1)
         }
