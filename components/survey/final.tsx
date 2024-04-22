@@ -26,8 +26,9 @@ function RenderDescriptionCell(params: any) {
             maxHeight: '100%',
             overflow: 'auto',
             textAlign: 'left',
-            lineHeight: '20px',
+            lineHeight: '5px',
             whiteSpace: 'normal',
+            padding:'20px',
             px: 1,
         }}>
             {params.value}

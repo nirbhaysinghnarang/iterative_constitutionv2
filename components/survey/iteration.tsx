@@ -66,6 +66,7 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                     flexDirection: 'column', // Stack children vertically
                     justifyContent: 'center', // Center vertically
                     maxHeight: '100%',
+                    padding:'20px',
                     overflow: 'auto',
                     textAlign: 'left',   // Ensures text aligns to the left
                     lineHeight: '20px',  // Sets line height for a bit of control over text spacing
