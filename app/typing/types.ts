@@ -5,11 +5,27 @@ export type constitution = string;
 export type choice = "A" | "B";
 
 // Define 'scenario' as an object type for describing a decision-making scenario with two choices
+
+export enum GenerationRule {
+    DoNotKill = "Do not kill",
+    DoNotCausePain = "Do not cause pain",
+    DoNotDisable = "Do not disable",
+    DoNotDepriveOfFreedom = "Do not deprive of freedom",
+    DoNotDepriveOfPleasure = "Do not deprive of pleasure",
+    DoNotDeceive = "Do not deceive",
+    DoNotBreakYourPromises = "Do not break your promises",
+    DoNotCheat = "Do not cheat",
+    DoNotBreakTheLaw = "Do not break the law",
+    DoYourDuty = "Do your duty"
+}
+
+
 export type scenario = {
     description: string,  // Text description of the scenario
     choiceA: string,      // Description of what choice "A" entails
-    choiceB: string,
-    id:number       // Description of what choice "B" entails
+    choiceB: string,// Description of what choice "B" entails
+    id:number,       
+    generationRule:GenerationRule|null;
 };
 
 // Define 'LMResponse' as an object type representing the response from a language model
@@ -39,7 +55,7 @@ export type Baseline = {
  
 
 // Define 'Dataset' as an array of 'scenario' objects
-export type Dataset = scenario[];
+export type Dataset = {scenarios:scenario[]; trainIdx:number[]; testIdx:number[]};
 
 // Define 'Iteration' as an object type to capture a set of scenarios and responses in a specific iteration
 export type Iteration = {

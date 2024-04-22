@@ -11,19 +11,8 @@ type SurveyClientProps = {
 
 export default function SurveyClient({ dataset }: SurveyClientProps) {
 
-    const trainTestSplit = (dataset: Dataset, trainSize = 0.75) => {
-        const indices = Array.from({ length: dataset.length }, (_, index) => index);
-        for (let i = indices.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [indices[i], indices[j]] = [indices[j], indices[i]];  // ES6 array destructuring swap
-        }
-        const splitIdx = Math.floor(indices.length * trainSize);
-        const trainIndices = indices.slice(0, splitIdx);
-        const testIndices = indices.slice(splitIdx);
-        return { trainIndices, testIndices };
-    };
-
-    const { trainIndices, testIndices } = trainTestSplit(dataset)
+   
+    const { trainIdx, testIdx, scenarios } = dataset
     const stepDescriptions: any = {
         1: "What would you do? Baseline data collection",
         2: "Iteration 1: Constitution 1",
@@ -62,7 +51,7 @@ export default function SurveyClient({ dataset }: SurveyClientProps) {
                 {step == 1 && <Step1Component dataset={dataset} passUpResults={setBaselineResults}></Step1Component>}
                 {step == 2 && <IterationComponent
                     c={''}
-                    dataset={baselineResults.filter((v, i) => trainIndices.includes(i))}
+                    dataset={baselineResults.filter((v, i) => trainIdx.includes(i))}
                     count={1}
                     setIterations={setIterations}
                 ></IterationComponent>}
@@ -74,7 +63,7 @@ export default function SurveyClient({ dataset }: SurveyClientProps) {
                 setIterations={setIterations}
                 ></IterationComponent>}
 
-                {step == 4 && <FinalComponent c={iterations[1].const} iterations={iterations} testIndices={testIndices} dataset={dataset} baseline={baselineResults}></FinalComponent>}
+                {step == 4 && <FinalComponent c={iterations[1].const} iterations={iterations} testIndices={testIdx} dataset={dataset} baseline={baselineResults}></FinalComponent>}
             </div>
         </div>
     );

@@ -55,7 +55,7 @@ export const RenderChipCell = (params: GridRenderCellParams<any>) => {
 export default function Step1Component({ dataset,passUpResults }: Step1ComponentProps) {
 
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
-        dataset.map(row => { return { ...row, userResponse: null } })
+        dataset.scenarios.map(row => { return { ...row, userResponse: null } })
     );
     const [numFilled, setNumFilled] = useState(0);
 
