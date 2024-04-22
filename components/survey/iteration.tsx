@@ -50,7 +50,7 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
 
 
     const [constitution, setConstitution] = useState(c ? c : "")
-    const [rows, setRows] = useState<Row[]>(dataset.map((scenario,index) => { return { ...scenario , lmResponse: null, id:index,} }));
+    const [rows, setRows] = useState<Row[]>(dataset.map((scenario,index) => { return { ...scenario , lmResponse: null} }));
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
         dataset.map(row => { return { ...row, userResponse: null } })
     );
