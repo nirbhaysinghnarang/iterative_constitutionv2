@@ -16,7 +16,7 @@ export async function getData(): Promise<Dataset> {
           description: row['context'],
           choiceA: row['action1'],
           choiceB: row['action2'],
-          id: parseInt(row["scenario_id"]),
+          id: (row["scenario_id"]),
           generationRule: row["generation_rule"] as GenerationRule
       }));
 

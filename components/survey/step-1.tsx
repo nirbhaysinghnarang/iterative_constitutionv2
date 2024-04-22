@@ -4,11 +4,12 @@ import { DataGrid, GridColDef, GridRenderCellParams, GridRenderEditCellParams, G
 import { useState, useEffect } from "react"
 import { Box, TextField, Typography, Chip, Button } from "@mui/material"
 import Stack from "@mui/material/Stack";
+import { Radio, RadioGroup, FormControlLabel, FormControl } from '@mui/material';
 
 
 type Step1ComponentProps = {
     dataset: Dataset,
-    passUpResults:(res:Baseline[])=>void
+    passUpResults: (res: Baseline[]) => void
 }
 
 interface EditableChipCellProps {
@@ -19,40 +20,57 @@ interface EditableChipCellProps {
 
 export const EditableChipCell: React.FC<EditableChipCellProps> = ({ id, value, field }) => {
     const apiRef = useGridApiContext();
-    const [inputValue, setInputValue] = useState(value);
+    const [selectedValue, setSelectedValue] = useState(value);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = event.target.value.toUpperCase();
-        if (newValue === 'A' || newValue === 'B') {
-            apiRef.current.setEditCellValue({ id, field, value: newValue });
-            apiRef.current.stopCellEditMode({ id, field });
-        }
-        setInputValue(newValue);
+        const newValue = event.target.value;
+        apiRef.current.setEditCellValue({ id, field, value: newValue });
+        apiRef.current.stopCellEditMode({ id, field });
+        setSelectedValue(newValue);
     };
 
     return (
-        <TextField
-            value={inputValue}
-            sx={{ padding: '10px' }}
-            onChange={handleChange}
-            inputProps={{ maxLength: 1 }}  // Limits input to 1 character
-            variant="outlined"
-            autoFocus
-            fullWidth
-        />
+        <FormControl component="fieldset" fullWidth sx={{
+            justifyContent: 'center',
+            alignItems: 'center'
+        }}>
+            <RadioGroup
+                row={false}
+                value={selectedValue}
+                onChange={handleChange}
+                sx={{ justifyContent: 'center', alignItems: 'center' }}
+            >
+                <FormControlLabel
+                    value="A"
+                    control={<Radio color="primary" />}
+                    label="A"
+                    sx={{ margin: '5px','&, &.Mui-checked': {
+                        color: 'primary',
+                      }, }}
+                />
+                <FormControlLabel
+                    value="B"
+                    control={<Radio color="secondary" />}
+                    label="B"
+                    sx={{ margin: '5px','&, &.Mui-checked': {
+                        color: 'secondary',
+                      }, }}
+                />
+            </RadioGroup>
+        </FormControl>
     );
 };
 
 export const RenderChipCell = (params: GridRenderCellParams<any>) => {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-            {params.value ? <Chip label={params.value} color="primary" /> : <Chip label="Invalid" color="error" />}
+            {params.value ? <Chip label={params.value} color={params.value == 'A' ? "primary" : 'secondary'} /> : <Chip label="Missing" color="warning" />}
         </Box>
     );
 };
 
 
-export default function Step1Component({ dataset,passUpResults }: Step1ComponentProps) {
+export default function Step1Component({ dataset, passUpResults }: Step1ComponentProps) {
 
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
         dataset.scenarios.map(row => { return { ...row, userResponse: null } })
@@ -133,10 +151,10 @@ export default function Step1Component({ dataset,passUpResults }: Step1Component
                 pagination={true}
                 processRowUpdate={handleProcessRowUpdate}
             />}
-            <Stack direction="row" alignItems={"center"} justifyContent={"center"} spacing={1}> 
-                <Typography sx={{color:"purple"}}>{numFilled}/{baselineResults.length} filled </Typography>
+            <Stack direction="row" alignItems={"center"} justifyContent={"center"} spacing={1}>
+                <Typography sx={{ color: "purple" }}>{numFilled}/{baselineResults.length} filled </Typography>
                 <Button
-                    onClick={()=>{passUpResults(baselineResults)}}
+                    onClick={() => { passUpResults(baselineResults) }}
                     disabled={numFilled !== baselineResults.length}
                     className="bg-purple-950 text-white hover:bg-purple-1000"
                     variant="contained">

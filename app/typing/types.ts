@@ -24,7 +24,7 @@ export type scenario = {
     description: string,  // Text description of the scenario
     choiceA: string,      // Description of what choice "A" entails
     choiceB: string,// Description of what choice "B" entails
-    id:number,       
+    id:string,       
     generationRule:GenerationRule|null;
 };
 
@@ -39,7 +39,7 @@ export type Row = {
     description: string,  // Text description of the scenario
     choiceA: string,      // Description of what choice "A" entails
     choiceB: string,
-    id:number  
+    id:string,  
     lmResponse: LMResponse|null,  // Response from the language model
     userResponse: choice|null  // The choice made by the user, either "A" or "B"
 };
@@ -49,7 +49,7 @@ export type Baseline = {
     description:string,
     choiceA:string,
     choiceB:string, 
-    id:number,
+    id:string,
     userResponse:choice | null,
 }
  
