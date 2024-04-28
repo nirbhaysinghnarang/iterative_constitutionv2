@@ -1,8 +1,8 @@
 "use client"
 import { Baseline, Dataset, Iteration, LMResponse, Row } from "@/app/typing/types"
 import { DataGrid, GridColDef, GridRenderCellParams, GridRenderEditCellParams, GridRowModel, useGridApiContext } from '@mui/x-data-grid';
-import { useState, useEffect } from "react"
-import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button } from "@mui/material"
+import { useState, useEffect, useMemo } from "react"
+import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button, Tooltip } from "@mui/material"
 import Stack from "@mui/material/Stack";
 import { EditableChipCell, RenderChipCell } from "./step-1";
 import { invokeLLM } from "@/app/lm/invokeLM";
@@ -40,6 +40,25 @@ export const IterationStepsComponent = () => {
         </div>)
 }
 
+export const renderCellWithTooltip = (params:any) => (
+    <Tooltip title={params.value || ''} placement="top-start" arrow>
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            maxHeight: '100%',  // Ensures the cell doesn't grow beyond the row height
+            overflow: 'auto',   // Adds scroll only when necessary
+            textAlign: 'left',
+            lineHeight: '20px',
+            whiteSpace: 'normal',  // Allows text to wrap within the cell
+            px: 1, 
+            py:10,              // Padding for some breathing space around text
+        }}>
+            {params.value?.toString()}
+        </Box>
+    </Tooltip>
+);
+
 export function capitalizeFirstLetter(string:string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -56,26 +75,29 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
     );
     const [numFilled, setNumFilled] = useState(0);
 
+    const [filter, setFilter] = useState('all'); 
+
+    const handleFilterChange = (newFilter: string) => {
+        setFilter(newFilter);
+    };
+
+    const filteredRows = useMemo(() => {
+        switch (filter) {
+            case 'yes':
+                return rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse);
+            case 'no':
+                return rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice !== row.userResponse);
+            default:
+                return rows;
+        }
+    }, [rows, filter]);
+
+
     const datagridCols = [
         {
             field: 'description', headerName: 'Description', width: 300, editable: false,
             innerHeight: 600,
-            renderCell: (params: any) => (
-                <Box sx={{
-                    display: 'flex',       // Use flexbox to align items
-                    flexDirection: 'column', // Stack children vertically
-                    justifyContent: 'center', // Center vertically
-                    maxHeight: '100%',
-                    padding:'20px',
-                    overflow: 'auto',
-                    textAlign: 'left',   // Ensures text aligns to the left
-                    lineHeight: '20px',  // Sets line height for a bit of control over text spacing
-                    whiteSpace: 'normal', // Allows word wrapping
-                    px: 1,               // Padding on the left and right for some space within the cell
-                }}>
-                    {params.value}
-                </Box>
-            )
+            renderCell: (params: any) => (renderCellWithTooltip(params))
         },
         {
             field: 'choiceA', headerName: 'Choice A', width: 300, editable: false,
@@ -116,22 +138,8 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             headerName: 'Model explanation',
             width: 300,
             valueGetter: (_:any, row:any) => { return row.lmResponse ? row.lmResponse.rationale : null},
-
-            renderCell: (params: any) => (
-                <Box sx={{
-                    display: 'flex',       // Use flexbox to align items
-                    flexDirection: 'column', // Stack children vertically
-                    justifyContent: 'center', // Center vertically
-                    maxHeight: '100%',
-                    overflow: 'auto',
-                    textAlign: 'left',   // Ensures text aligns to the left
-                    lineHeight: '20px',  // Sets line height for a bit of control over text spacing
-                    whiteSpace: 'normal', // Allows word wrapping
-                    px: 1,               // Padding on the left and right for some space within the cell
-                }}>
-                    {params.value?.toString()}
-                </Box>
-            )
+            renderCell: (params: any) => (renderCellWithTooltip(params))
+            
         },
         {
             field:'match',
@@ -216,10 +224,24 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                 >
                     Run Model
                 </Button>
+
+                {hasRun && (
+                <Stack direction="row" spacing={2}>
+                    <Button variant="outlined" onClick={() => handleFilterChange('all')} color="primary">
+                        All
+                    </Button>
+                    <Button variant="outlined" onClick={() => handleFilterChange('yes')} color="secondary">
+                        Match
+                    </Button>
+                    <Button variant="outlined" onClick={() => handleFilterChange('no')} color="error">
+                        No Match
+                    </Button>
+                </Stack>
+            )}
             </Stack>
             {dataset && <DataGrid
-                rows={rows}
-                rowHeight={150}
+                rows={filteredRows}
+                rowHeight={300}
                 columns={datagridCols}
                 initialState={{
                     pagination: { paginationModel: { pageSize: 5 } },

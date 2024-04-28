@@ -80,6 +80,7 @@ const datagridCols: GridColDef<Row>[] = [
 ];
 
 export default function FinalComponent({ c, iterations, testIndices, dataset, baseline }: FinalComponentProps) {
+    
     const [rows, setRows] = useState<Row[]>(baseline.filter((b, i) => testIndices.includes(i)).map(r => {
         return { ...r, lmResponse: null }
     }));
@@ -167,7 +168,7 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
                     rows={rows}
                     columns={datagridCols}
                     pagination={true}
-                    rowHeight={150}
+                    rowHeight={300}
                 />
             )}
         </div>

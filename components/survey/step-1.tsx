@@ -144,7 +144,7 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
             {dataset && <DataGrid
                 rows={baselineResults}
-                rowHeight={150}
+                rowHeight={300}
                 columns={datagridCols}
                 initialState={{
                     pagination: { paginationModel: { pageSize: 5 } },
