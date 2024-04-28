@@ -187,6 +187,20 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
         }
     };
 
+    const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
+
+    const calculateModelAccuracy = () => {
+        const matchingResponses = rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse).length;
+        const totalResponses = rows.filter(row => row.userResponse != null).length; // Only consider rows where user has responded
+        const accuracy = totalResponses > 0 ? (matchingResponses / totalResponses) * 100 : 0;
+        setModelAccuracy(accuracy);
+    };
+
+    useEffect(() => {
+        if (hasRun) {
+            calculateModelAccuracy();
+        }
+    }, [rows, hasRun]);
 
 
     useEffect(() => {
@@ -226,18 +240,23 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                 </Button>
 
                 {hasRun && (
-                <Stack direction="row" spacing={2}>
-                    <Button variant="outlined" onClick={() => handleFilterChange('all')} color="primary">
-                        All
-                    </Button>
-                    <Button variant="outlined" onClick={() => handleFilterChange('yes')} color="secondary">
-                        Match
-                    </Button>
-                    <Button variant="outlined" onClick={() => handleFilterChange('no')} color="error">
-                        No Match
-                    </Button>
-                </Stack>
-            )}
+                    <Stack direction={"column"} spacing={1}>
+                        <Typography variant="h6" sx={{ mt: 2 }}>
+                            Model Accuracy: {modelAccuracy !== null ? `${modelAccuracy.toFixed(2)}%` : 'Calculating...'}
+                        </Typography>
+                        <Stack direction="row" spacing={2}>
+                            <Button variant="outlined" onClick={() => handleFilterChange('all')} color="primary">
+                                All
+                            </Button>
+                            <Button variant="outlined" onClick={() => handleFilterChange('yes')} color="secondary">
+                                Match
+                            </Button>
+                            <Button variant="outlined" onClick={() => handleFilterChange('no')} color="error">
+                                No Match
+                            </Button>
+                        </Stack>
+                    </Stack>
+                )}
             </Stack>
             {dataset && <DataGrid
                 rows={filteredRows}
