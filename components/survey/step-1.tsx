@@ -1,7 +1,7 @@
 "use client"
 import { Baseline, Dataset } from "@/app/typing/types"
 import { DataGrid, GridColDef, GridRenderCellParams, GridRenderEditCellParams, GridRowModel, useGridApiContext } from '@mui/x-data-grid';
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Box, TextField, Typography, Chip, Button } from "@mui/material"
 import Stack from "@mui/material/Stack";
 import { Radio, RadioGroup, FormControlLabel, FormControl } from '@mui/material';
@@ -76,6 +76,7 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
         dataset.scenarios.map(row => { return { ...row, userResponse: null } })
     );
     const [numFilled, setNumFilled] = useState(0);
+    const [filter, setFilter] = useState('all');
 
 
 
@@ -119,19 +120,34 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
         }, {
             field: 'userResponse', headerName: 'Your choice', width: 300, editable: true,
             innerHeight: 400,
-            renderCell: RenderChipCell,
-            renderEditCell: (params: GridRenderEditCellParams) => (
-                <EditableChipCell id={params.id} value={params.value?.toString() || ''} field={params.field} />
+            renderCell: EditableChipCell
+        }, {
+            field: 'correctness', headerName: 'Correctness', width: 150, editable: false,
+            valueGetter: (params) => params.row.lmResponse.choice === params.row.userResponse,
+            renderCell: (params) => (
+                <Chip
+                    label={params.value ? "Correct" : "Incorrect"}
+                    color={params.value ? "success" : "error"}
+                    sx={{ justifyContent: 'center', width: '100%' }}
+                />
             )
         },
 
     ]
 
+    const filteredRows = useMemo(() => {
+        if (filter === 'all') {
+            return baselineResults;
+        } else {
+            return baselineResults.filter(row => row.userResponse === filter);
+        }
+    }, [baselineResults, filter]);
+
     useEffect(() => {
         if (baselineResults) {
-            setNumFilled(baselineResults.filter(r => r.userResponse !== null).length)
+            setNumFilled(filteredRows.filter(r => r.userResponse !== null).length)
         }
-    }, [baselineResults])
+    }, [filteredRows])
 
     const handleProcessRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
         const updatedRows = baselineResults.map(row =>
@@ -143,7 +159,7 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
     return (
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
             {dataset && <DataGrid
-                rows={baselineResults}
+                rows={filteredRows}
                 rowHeight={150}
                 columns={datagridCols}
                 initialState={{
@@ -154,6 +170,9 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
             />}
             <Stack direction="row" alignItems={"center"} justifyContent={"center"} spacing={1}>
                 <Typography sx={{ color: "purple" }}>{numFilled}/{baselineResults.length} filled </Typography>
+                <Button onClick={() => setFilter('all')} variant="outlined">All</Button>
+                <Button onClick={() => setFilter('correct')} variant="outlined">Correct</Button>
+                <Button onClick={() => setFilter('incorrect')} variant="outlined">Incorrect</Button>
                 <Button
                     onClick={() => { passUpResults(baselineResults) }}
                     disabled={numFilled !== baselineResults.length}

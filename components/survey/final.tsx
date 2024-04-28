@@ -9,6 +9,26 @@ import { capitalizeFirstLetter } from "./iteration";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { publishResults } from "@/app/publish/publish.client";
 
+function RenderMetricsCell(params: any) {
+    return (
+        <div>
+            <Typography variant="body2">Accuracy: {params.value.accuracy.toFixed(2)}</Typography>
+            <Typography variant="body2">Precision: {params.value.precision.toFixed(2)}</Typography>
+            <Typography variant="body2">Recall: {params.value.recall.toFixed(2)}</Typography>
+            <Typography variant="body2">F1 Score: {params.value.f1Score.toFixed(2)}</Typography>
+        </div>
+    );
+}
+
+function calculateMetrics(rows: Row[]) {
+    // Placeholder for metrics calculation logic
+    return {
+        accuracy: 0, // Placeholder for accuracy calculation
+        precision: 0, // Placeholder for precision calculation
+        recall: 0 // Placeholder for recall calculation
+    };
+}
+
 interface FinalComponentProps {
     c: constitution,
     iterations: Iteration[],
@@ -76,7 +96,8 @@ const datagridCols: GridColDef<Row>[] = [
     { field: 'userResponse', headerName: 'Your Choice', width: 100, editable: true, renderCell: RenderChipCell },
     { field: 'lmResponseChoice', headerName: 'Model Choice', width: 100, valueGetter: getValueChoice, renderCell: RenderChipCell },
     { field: 'lmResponseRationale', headerName: 'Model Explanation', width: 300, valueGetter: getValueRationale, renderCell: RenderDescriptionCell },
-    { field: 'match', headerName: 'Alignment', width: 100, valueGetter: getValueMatch, renderCell: RenderMatchChip }
+    { field: 'match', headerName: 'Alignment', width: 100, valueGetter: getValueMatch, renderCell: RenderMatchChip },
+    { field: 'metrics', headerName: 'Metrics', width: 200, renderCell: RenderMetricsCell, valueGetter: (params: any) => params.row.metrics }
 ];
 
 export default function FinalComponent({ c, iterations, testIndices, dataset, baseline }: FinalComponentProps) {
@@ -84,15 +105,10 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
         return { ...r, lmResponse: null }
     }));
     const [loading, setLoading] = useState(false);
-    const [accuracy, setAccuracy] = useState<number | null>(null);
 
     const [res, setRes] = useState<SurveyResults|null>(null);
+    const [metrics, setMetrics] = useState<{ accuracy: number; precision: number; recall: number; f1Score: number; } | null>(null);
 
-    const calculateAccuracy = (rows: Row[]) => {
-        const total = rows.length;
-        const correct = rows.filter(row => row.lmResponse?.choice === row.userResponse).length;
-        return total > 0 ? (correct / total) * 100 : 0;
-    };
 
     const handleRunTestSet = async () => {
         setLoading(true);
@@ -109,7 +125,6 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
         }));
 
         setRows(updatedRows);
-        setAccuracy(calculateAccuracy(updatedRows));
         setLoading(false);
 
         setRes(
@@ -145,12 +160,6 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
                 {loading ? <CircularProgress size={24} /> : "Run on Test Set"}
             </Button>
 
-            {accuracy !== null && (
-                <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Model Accuracy: {accuracy.toFixed(2)}%
-                </Typography>
-
-            )}
 
 
             {accuracy !== null && res && (
@@ -162,6 +171,14 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
                 </Button>
             )}
 
+            {metrics && (
+                <div>
+                    <Typography variant="h6">Accuracy: {metrics.accuracy}</Typography>
+                    <Typography variant="h6">Precision: {metrics.precision}</Typography>
+                    <Typography variant="h6">Recall: {metrics.recall}</Typography>
+                    <Typography variant="h6">F1 Score: {metrics.f1Score}</Typography>
+                </div>
+            )}
             {rows.length > 0 && (
                 <DataGrid
                     rows={rows}

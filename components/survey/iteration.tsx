@@ -2,6 +2,7 @@
 import { Baseline, Dataset, Iteration, LMResponse, Row } from "@/app/typing/types"
 import { DataGrid, GridColDef, GridRenderCellParams, GridRenderEditCellParams, GridRowModel, useGridApiContext } from '@mui/x-data-grid';
 import { useState, useEffect } from "react"
+const [filter, setFilter] = useState('all');
 import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button } from "@mui/material"
 import Stack from "@mui/material/Stack";
 import { EditableChipCell, RenderChipCell } from "./step-1";
@@ -96,7 +97,11 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
         }, {
             field: 'userResponse', headerName: 'Your choice', width: 100, editable: true,
             innerHeight: 400,
-            renderCell: RenderChipCell,
+            renderCell: (params) => params.isEditable ? (
+                <EditableChipCell id={params.id} value={params.value?.toString() || ''} field={params.field} />
+            ) : (
+                RenderChipCell(params)
+            ),
             renderEditCell: (params: GridRenderEditCellParams) => (
                 <EditableChipCell id={params.id} value={params.value?.toString() || ''} field={params.field} />
             )
@@ -106,7 +111,11 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             headerName: 'Model choice',
             width: 100,
             valueGetter: (_:any, row:any) => { return row.lmResponse ? row.lmResponse.choice : null},
-            renderCell: RenderChipCell,
+            renderCell: (params) => params.isEditable ? (
+                <EditableChipCell id={params.id} value={params.value?.toString() || ''} field="lmResponse.choice" />
+            ) : (
+                RenderChipCell(params)
+            ),
             renderEditCell: (params: GridRenderEditCellParams) => (
                 <EditableChipCell id={params.id} value={params.value?.toString() || ''} field="lmResponse.choice" />
             )
@@ -117,7 +126,14 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             width: 300,
             valueGetter: (_:any, row:any) => { return row.lmResponse ? row.lmResponse.rationale : null},
 
-            renderCell: (params: any) => (
+            renderCell: (params: any) => params.isEditable ? (
+                <TextField
+                    fullWidth
+                    variant="outlined"
+                    value={params.value?.toString() || ''}
+                    onChange={(e) => params.api.setEditCellValue({ id: params.id, field: 'lmResponseRationale', value: e.target.value }, e)}
+                />
+            ) : (
                 <Box sx={{
                     display: 'flex',       // Use flexbox to align items
                     flexDirection: 'column', // Stack children vertically
@@ -146,6 +162,15 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                 label={capitalizeFirstLetter(params.value?.toString())}
                 ></Chip>
             }
+        },
+        {
+            field: 'correctness',
+            headerName: 'Correctness',
+            width: 100,
+            valueGetter: (params) => { return params.row.lmResponse?.choice === params.row.userResponse; },
+            renderCell: (params) => (
+                <Chip label={params.value ? "Correct" : "Incorrect"} style={{backgroundColor: params.value ? "green" : "red", color: "white"}} />
+            )
         }
 
 
@@ -217,8 +242,13 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                     Run Model
                 </Button>
             </Stack>
+            <Stack direction="row" spacing={2}>
+                <Button onClick={() => setFilter('all')} color="primary">All</Button>
+                <Button onClick={() => setFilter('correct')} color="secondary">Correct</Button>
+                <Button onClick={() => setFilter('incorrect')} color="error">Incorrect</Button>
+            </Stack>
             {dataset && <DataGrid
-                rows={rows}
+                rows={rows.filter(row => filter === 'all' || (filter === 'correct' && row.correctness) || (filter === 'incorrect' && !row.correctness))}
                 rowHeight={150}
                 columns={datagridCols}
                 initialState={{
