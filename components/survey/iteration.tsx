@@ -7,7 +7,7 @@ import Stack from "@mui/material/Stack";
 import { EditableChipCell, RenderChipCell } from "./step-1";
 import { invokeLLM } from "@/app/lm/invokeLM";
 import {CircularProgress} from "@mui/material";
-
+import ExpandableTextField from "../textField";
 type IterationProps = {
     dataset: Baseline[],
     c:string|null
@@ -217,14 +217,9 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
             <IterationStepsComponent></IterationStepsComponent>
             <Stack direction="column" spacing={2} sx={{ width: "50%" }}>
-                <TextField
-                    multiline
-                    rows={4}
-                    variant="outlined"
-                    placeholder="Enter your moral constitution here..."
+                <ExpandableTextField
                     value={constitution}
-                    onChange={(e) => setConstitution(e.target.value)}
-                    sx={{ mb: 2 }}
+                    onChange={(e:any) => setConstitution(e.target.value)}
                 />
 
                 <Button
