@@ -5,7 +5,7 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 import { RenderChipCell, EditableChipCell } from "./step-1";
 import { GridRenderEditCellParams } from "@mui/x-data-grid/models/params/gridCellParams";
-import { capitalizeFirstLetter } from "./iteration";
+import { capitalizeFirstLetter, renderCellWithTooltip } from "./iteration";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { publishResults } from "@/app/publish/publish.client";
 
@@ -71,8 +71,8 @@ function RenderMatchChip(params: any) {
 
 const datagridCols: GridColDef<Row>[] = [
     { field: 'description', headerName: 'Description', width: 300, renderCell: RenderDescriptionCell },
-    { field: 'choiceA', headerName: 'Choice A', width: 300, renderCell: RenderChoiceCell },
-    { field: 'choiceB', headerName: 'Choice B', width: 300, renderCell: RenderChoiceCell },
+    { field: 'choiceA', headerName: 'Choice A', width: 300, renderCell:  (params: any) => (renderCellWithTooltip(params)) },
+    { field: 'choiceB', headerName: 'Choice B', width: 300, renderCell: (params: any) => (renderCellWithTooltip(params)) },
     { field: 'userResponse', headerName: 'Your Choice', width: 100, editable: true, renderCell: RenderChipCell },
     { field: 'lmResponseChoice', headerName: 'Model Choice', width: 100, valueGetter: getValueChoice, renderCell: RenderChipCell },
     { field: 'lmResponseRationale', headerName: 'Model Explanation', width: 300, valueGetter: getValueRationale, renderCell: RenderDescriptionCell },

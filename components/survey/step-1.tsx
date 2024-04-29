@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Box, TextField, Typography, Chip, Button } from "@mui/material"
 import Stack from "@mui/material/Stack";
 import { Radio, RadioGroup, FormControlLabel, FormControl } from '@mui/material';
+import { renderCellWithTooltip } from "./iteration";
 
 
 type Step1ComponentProps = {
@@ -103,18 +104,14 @@ export default function Step1Component({ dataset, passUpResults }: Step1Componen
         {
             field: 'choiceA', headerName: 'Choice A', width: 300, editable: false,
             innerHeight: 400,
-            renderCell: (params: any) => (
-                <Box sx={{ overflowY: 'scroll', whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                    {params.value}
-                </Box>
+            renderCell: (params: any) => 
+                (renderCellWithTooltip(params)
             )
         }, {
             field: 'choiceB', headerName: 'Choice B', width: 300, editable: false,
             innerHeight: 400,
-            renderCell: (params: any) => (
-                <Box sx={{ overflowY: 'scroll', whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                    {params.value}
-                </Box>
+            renderCell: (params: any) => 
+                (renderCellWithTooltip(params)
             )
         }, {
             field: 'userResponse', headerName: 'Your choice', width: 300, editable: true,

@@ -6,6 +6,7 @@ import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button,
 import Stack from "@mui/material/Stack";
 import { EditableChipCell, RenderChipCell } from "./step-1";
 import { invokeLLM } from "@/app/lm/invokeLM";
+import {CircularProgress} from "@mui/material";
 
 type IterationProps = {
     dataset: Baseline[],
@@ -102,19 +103,11 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
         {
             field: 'choiceA', headerName: 'Choice A', width: 300, editable: false,
             innerHeight: 400,
-            renderCell: (params: any) => (
-                <Box sx={{ overflowY: 'scroll', whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                    {params.value}
-                </Box>
-            )
+            renderCell: (params: any) => (renderCellWithTooltip(params))
         }, {
             field: 'choiceB', headerName: 'Choice B', width: 300, editable: false,
             innerHeight: 400,
-            renderCell: (params: any) => (
-                <Box sx={{ overflowY: 'scroll', whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                    {params.value}
-                </Box>
-            )
+            renderCell: (params: any) => (renderCellWithTooltip(params))
         }, {
             field: 'userResponse', headerName: 'Your choice', width: 100, editable: true,
             innerHeight: 400,
@@ -162,6 +155,7 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
     
     
     const handleRunModel = async () => {
+        setLoading(true)
         setHasRun(true);
         try {
             const responses = await Promise.all(dataset.map((scenario:any) => {
@@ -181,11 +175,14 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             }));
     
             setRows(updatedRows);
+            setLoading(false)
         } catch (error) {
             console.error("Failed to run model:", error);
             // Handle errors appropriately in your UI
         }
     };
+
+    const [loading, setLoading] = useState(false);
 
     const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
 
@@ -235,11 +232,12 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                     className="bg-purple-950 text-white hover:bg-purple-1000"
                     onClick={handleRunModel}
                     disabled={hasRun}
+                    
                 >
                     Run Model
                 </Button>
-
-                {hasRun && (
+                {hasRun && loading && <CircularProgress sx={{flex:1, justifyContent:"center"}}></CircularProgress>}
+                {hasRun && !loading && (
                     <Stack direction={"column"} spacing={1}>
                         <Typography variant="h6" sx={{ mt: 2 }}>
                             Model Accuracy: {modelAccuracy !== null ? `${modelAccuracy.toFixed(2)}%` : 'Calculating...'}
