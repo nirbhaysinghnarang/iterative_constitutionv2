@@ -4,11 +4,12 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "./submit-button";
 
-export default function Login({
+export default async function Login({
   searchParams,
 }: {
   searchParams: { message: string };
 }) {
+  const supabase = createClient();
   const signIn = async (formData: FormData) => {
     "use server";
 
@@ -30,11 +31,10 @@ export default function Login({
 
   const signUp = async (formData: FormData) => {
     "use server";
-
+    console.log("Signing Up");
     const origin = headers().get("origin");
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const supabase = createClient();
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -50,6 +50,13 @@ export default function Login({
 
     return redirect("/login?message=Check email to continue sign in process");
   };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    return redirect("/");
+  }
 
   return (
     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2">
