@@ -23,7 +23,7 @@ export default function SurveyClient({ dataset }: SurveyClientProps) {
     const [baselineResults, setBaselineResults] = useState<Baseline[]>([]);
     const [iterations, setIterations] = useState<Iteration[]>([]);
 
-
+    const [constitution, setConstitution] = useState("")
 
 
     useEffect(() => {
@@ -48,9 +48,9 @@ export default function SurveyClient({ dataset }: SurveyClientProps) {
                     <p style={{ color: 'white' }}>Step {step}: {stepDescriptions[step]}</p>
                 </div>
 
-                {step == 1 && <Step1Component dataset={dataset} passUpResults={setBaselineResults}></Step1Component>}
+                {step == 1 && <Step1Component dataset={dataset} passUpResults={setBaselineResults} setConstitution={setConstitution}></Step1Component>}
                 {step == 2 && <IterationComponent
-                    c={''}
+                    c={constitution}
                     dataset={baselineResults.filter((v, i) => trainIdx.includes(i))}
                     count={1}
                     setIterations={setIterations}

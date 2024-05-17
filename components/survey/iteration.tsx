@@ -265,14 +265,15 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                 <Button
                     className="bg-purple-950 text-white hover:bg-purple-1000"
                     variant="contained"
-                    disabled={!hasRun}
+                    disabled={!hasRun && !modelAccuracy}
                     onClick={() => {
                         setIterations((p) => [
                             ...p,
                             {
                                 responses: rows,
                                 count:1,
-                                const: constitution
+                                const: constitution,
+                                accuracy:modelAccuracy!
                             }
                         ]);
                     }}

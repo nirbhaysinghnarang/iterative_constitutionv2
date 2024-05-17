@@ -28,7 +28,7 @@ function RenderDescriptionCell(params: any) {
             textAlign: 'left',
             lineHeight: '5px',
             whiteSpace: 'normal',
-            padding:'20px',
+            padding: '20px',
             px: 1,
         }}>
             {params.value}
@@ -69,25 +69,74 @@ function RenderMatchChip(params: any) {
     );
 }
 
-const datagridCols: GridColDef<Row>[] = [
-    { field: 'description', headerName: 'Description', width: 300, renderCell: RenderDescriptionCell },
-    { field: 'choiceA', headerName: 'Choice A', width: 300, renderCell:  (params: any) => (renderCellWithTooltip(params)) },
-    { field: 'choiceB', headerName: 'Choice B', width: 300, renderCell: (params: any) => (renderCellWithTooltip(params)) },
-    { field: 'userResponse', headerName: 'Your Choice', width: 100, editable: true, renderCell: RenderChipCell },
-    { field: 'lmResponseChoice', headerName: 'Model Choice', width: 100, valueGetter: getValueChoice, renderCell: RenderChipCell },
-    { field: 'lmResponseRationale', headerName: 'Model Explanation', width: 300, valueGetter: getValueRationale, renderCell: RenderDescriptionCell },
-    { field: 'match', headerName: 'Alignment', width: 100, valueGetter: getValueMatch, renderCell: RenderMatchChip }
-];
+const datagridCols = [
+    {
+        field: 'description', headerName: 'Description', width: 300, editable: false,
+        innerHeight: 600,
+        renderCell: (params: any) => (renderCellWithTooltip(params))
+    },
+    {
+        field: 'choiceA', headerName: 'Choice A', width: 300, editable: false,
+        innerHeight: 400,
+        renderCell: (params: any) => (renderCellWithTooltip(params))
+    }, {
+        field: 'choiceB', headerName: 'Choice B', width: 300, editable: false,
+        innerHeight: 400,
+        renderCell: (params: any) => (renderCellWithTooltip(params))
+    }, {
+        field: 'userResponse', headerName: 'Your choice', width: 100, editable: true,
+        innerHeight: 400,
+        renderCell: RenderChipCell,
+        renderEditCell: (params: GridRenderEditCellParams) => (
+            <EditableChipCell id={params.id} value={params.value?.toString() || ''} field={params.field} />
+        )
+    },
+    {
+        field: 'lmResponseChoice',  // Custom field key, not directly mapping to data structure
+        headerName: 'Model choice',
+        width: 100,
+        valueGetter: (_: any, row: any) => { return row.lmResponse ? row.lmResponse.choice : null },
+        renderCell: RenderChipCell,
+        renderEditCell: (params: GridRenderEditCellParams) => (
+            <EditableChipCell id={params.id} value={params.value?.toString() || ''} field="lmResponse.choice" />
+        )
+    },
+    {
+        field: 'lmResponseRationale',  // Custom field key, not directly mapping to data structure
+        headerName: 'Model explanation',
+        width: 300,
+        valueGetter: (_: any, row: any) => { return row.lmResponse ? row.lmResponse.rationale : null },
+        renderCell: (params: any) => (renderCellWithTooltip(params))
 
+    },
+    {
+        field: 'match',
+        headerName: 'Alignment',
+        width: 100,
+        valueGetter: (_: any, row: any) => { return row.lmResponse && row.userResponse ? row.lmResponse.choice === row.userResponse : false },
+        renderCell: (params: any) => {
+            return <Chip sx={{
+                backgroundColor: params.value ? "green" : "red",
+                color: "white"
+            }}
+                label={capitalizeFirstLetter(params.value?.toString())}
+            ></Chip>
+        }
+    }
+
+
+]
 export default function FinalComponent({ c, iterations, testIndices, dataset, baseline }: FinalComponentProps) {
-    
+
     const [rows, setRows] = useState<Row[]>(baseline.filter((b, i) => testIndices.includes(i)).map(r => {
         return { ...r, lmResponse: null }
     }));
     const [loading, setLoading] = useState(false);
     const [accuracy, setAccuracy] = useState<number | null>(null);
 
-    const [res, setRes] = useState<SurveyResults|null>(null);
+    const [suc, setSuc] = useState(false)
+
+    const [res, setRes] = useState<SurveyResults | null>(null);
 
     const calculateAccuracy = (rows: Row[]) => {
         const total = rows.length;
@@ -104,6 +153,7 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
             actionB: row.choiceB
         }))) as LMResponse[];
 
+
         const updatedRows = rows.map((row, index) => ({
             ...row,
             lmResponse: responses[index]
@@ -115,15 +165,26 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
 
         setRes(
             {
-                iterations:iterations,
-                constitution:c,
-                initialRows:baseline,
-                modelAccuracy:calculateAccuracy(updatedRows)
+                iterations: iterations,
+                constitution: c,
+                initialRows: baseline,
+                modelAccuracy: calculateAccuracy(updatedRows)
             }
         )
 
 
     };
+
+    if (suc) {
+        return <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
+
+            <Typography variant="h6" style={{ marginTop: 20 }}>
+               Thank you for taking our survey
+            </Typography>
+        </div>
+
+    }
+
 
     return (
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
@@ -156,21 +217,30 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
 
             {accuracy !== null && res && (
                 <Button className="bg-purple-950 text-white hover:bg-purple-1000" variant="contained"
-                onClick={()=>{publishResults(res)}}
+                    onClick={() => {
+                        setLoading(true)
+                        publishResults(res).then(() => {alert("Uploaded results!"); setSuc(true)}).catch(() => alert("An error occured while uploading")).finally(() => setLoading(false))
+
+            }
+                
+                }
                 >
-                    Publish results
+            Publish results
 
-                </Button>
-            )}
+        </Button>
+    )
+}
 
-            {rows.length > 0 && (
-                <DataGrid
-                    rows={rows}
-                    columns={datagridCols}
-                    pagination={true}
-                    rowHeight={300}
-                />
-            )}
-        </div>
+{
+    rows.length > 0 && (
+        <DataGrid
+            rows={rows}
+            columns={datagridCols}
+            pagination={true}
+            rowHeight={300}
+        />
+    )
+}
+        </div >
     );
 }

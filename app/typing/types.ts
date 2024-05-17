@@ -61,7 +61,8 @@ export type Dataset = {scenarios:scenario[]; trainIdx:number[]; testIdx:number[]
 export type Iteration = {
     const:constitution
     count: number,        // Count of scenarios considered in this iteration
-    responses: Row[]      // Array of 'Row' objects containing responses to each scenario
+    responses: Row[],
+    accuracy:number      // Array of 'Row' objects containing responses to each scenario
 };
 
 // Define 'SurveyResults' as an array of 'Iteration' objects, plus initial and final results representing multiple rounds of survey data
