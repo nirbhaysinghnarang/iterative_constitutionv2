@@ -3,8 +3,8 @@ import { promises as fs } from "fs";
 import { Dataset, GenerationRule, scenario } from "../typing/types";
 
 export async function getData(): Promise<Dataset> {
-  const trainSize = 8;
-  const testSize = 2;
+  const trainSize = 40;
+  const testSize = 12;
 
   try {
     const filePath = `${process.cwd()}/app/data/refined_dataset.csv`;
