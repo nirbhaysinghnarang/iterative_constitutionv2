@@ -13,13 +13,7 @@ export default async function SurveyCollection() {
   const supabase = createClient();
 
 
-
   console.log("here")
-  
-
-
-
-
 
   const {
     data: { user },
