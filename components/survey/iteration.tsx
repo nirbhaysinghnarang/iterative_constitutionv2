@@ -2,25 +2,34 @@
 import { Baseline, Dataset, Iteration, LMResponse, Row } from "@/app/typing/types"
 import { DataGrid, GridColDef, GridRenderCellParams, GridRenderEditCellParams, GridRowModel, useGridApiContext } from '@mui/x-data-grid';
 import { useState, useEffect, useMemo } from "react"
-import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button, Tooltip } from "@mui/material"
+import { Box, List, ListItem, ListItemText, TextField, Typography, Chip, Button, Tooltip, styled } from "@mui/material"
 import Stack from "@mui/material/Stack";
 import { EditableChipCell, RenderChipCell } from "./step-1";
 import { invokeLLM } from "@/app/lm/invokeLM";
-import {CircularProgress} from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import ExpandableTextField from "../textField";
 type IterationProps = {
     dataset: Baseline[],
-    c:string|null
+    c: string | null
     count: number,
-    setIterations: React.Dispatch<React.SetStateAction<Iteration[]>>
+    setIterations: (i:Iteration)=>void
 
 }
-export const IterationStepsComponent = () => {
+export const IterationStepsComponent = ({ count }: { count: string }) => {
     return (
-        <div style={{ width: "50%" }}>
-            <Typography variant="h6" gutterBottom component="div">
-                Iteration Steps
-            </Typography>
+        <div style={{ width: "100%" }}>
+
+
+            <Stack direction="row" justifyContent={"space-between"} sx={{py:2}}>
+                <Typography variant="h6" gutterBottom component="div">
+                    Iteration Steps
+                </Typography>
+                <Chip className="bg-purple-950 bold" label={`Iteration ${count}`} color="primary" />
+
+            </Stack>
+
+
+
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                 <ListItem>
                     <ListItemText primary="1. Enter your moral constitution" />
@@ -41,42 +50,58 @@ export const IterationStepsComponent = () => {
         </div>)
 }
 
-export const renderCellWithTooltip = (params:any) => (
+
+
+
+export const renderCellWithTooltip = (params: any) => (
     <Tooltip title={params.value || ''} placement="top-start" arrow>
-        <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            maxHeight: '100%',  // Ensures the cell doesn't grow beyond the row height
-            overflow: 'auto',   // Adds scroll only when necessary
-            textAlign: 'left',
-            lineHeight: '20px',
-            whiteSpace: 'normal',  // Allows text to wrap within the cell
-            px: 1, 
-            py:10,              // Padding for some breathing space around text
-        }}>
-            {params.value?.toString()}
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                height: '100%',
+                overflow: 'hidden',
+                textAlign: 'left',
+                lineHeight: '20px',
+                whiteSpace: 'normal',
+                px: 1,
+                py: 2,
+            }}
+        >
+            <Typography
+                sx={{
+                    height: '100%',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'scroll',
+                }}
+            >
+                {params.value?.toString()}
+            </Typography>
         </Box>
     </Tooltip>
 );
 
-export function capitalizeFirstLetter(string:string) {
+
+export function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-export default function IterationComponent({ dataset, count, c, setIterations}: IterationProps) {
+export default function IterationComponent({ dataset, count, c, setIterations }: IterationProps) {
 
     const [hasRun, setHasRun] = useState(false);
 
 
     const [constitution, setConstitution] = useState(c ? c : "")
-    const [rows, setRows] = useState<Row[]>(dataset.map((scenario,index) => { return { ...scenario , lmResponse: null} }));
+    const [rows, setRows] = useState<Row[]>(dataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
         dataset.map(row => { return { ...row, userResponse: null } })
     );
     const [numFilled, setNumFilled] = useState(0);
 
-    const [filter, setFilter] = useState('all'); 
+    const [filter, setFilter] = useState('all');
 
     const handleFilterChange = (newFilter: string) => {
         setFilter(newFilter);
@@ -120,7 +145,7 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             field: 'lmResponseChoice',  // Custom field key, not directly mapping to data structure
             headerName: 'Model choice',
             width: 100,
-            valueGetter: (_:any, row:any) => { return row.lmResponse ? row.lmResponse.choice : null},
+            valueGetter: (_: any, row: any) => { return row.lmResponse ? row.lmResponse.choice : null },
             renderCell: RenderChipCell,
             renderEditCell: (params: GridRenderEditCellParams) => (
                 <EditableChipCell id={params.id} value={params.value?.toString() || ''} field="lmResponse.choice" />
@@ -130,21 +155,21 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
             field: 'lmResponseRationale',  // Custom field key, not directly mapping to data structure
             headerName: 'Model explanation',
             width: 300,
-            valueGetter: (_:any, row:any) => { return row.lmResponse ? row.lmResponse.rationale : null},
+            valueGetter: (_: any, row: any) => { return row.lmResponse ? row.lmResponse.rationale : null },
             renderCell: (params: any) => (renderCellWithTooltip(params))
-            
+
         },
         {
-            field:'match',
-            headerName:'Alignment',
-            width:100,
-            valueGetter: (_:any, row:any) => {return row.lmResponse && row.userResponse ? row.lmResponse.choice === row.userResponse : false},
-            renderCell:(params:any)=> {
+            field: 'match',
+            headerName: 'Alignment',
+            width: 100,
+            valueGetter: (_: any, row: any) => { return row.lmResponse && row.userResponse ? row.lmResponse.choice === row.userResponse : false },
+            renderCell: (params: any) => {
                 return <Chip sx={{
-                    backgroundColor:params.value ? "green" : "red",
-                    color:"white"
+                    backgroundColor: params.value ? "green" : "red",
+                    color: "white"
                 }}
-                label={capitalizeFirstLetter(params.value?.toString())}
+                    label={capitalizeFirstLetter(params.value?.toString())}
                 ></Chip>
             }
         }
@@ -152,13 +177,13 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
 
     ]
 
-    
-    
+
+
     const handleRunModel = async () => {
         setLoading(true)
         setHasRun(true);
         try {
-            const responses = await Promise.all(dataset.map((scenario:any) => {
+            const responses = await Promise.all(dataset.map((scenario: any) => {
                 return invokeLLM({
                     scenario: scenario.description,
                     constitution: constitution,
@@ -173,7 +198,7 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                     rationale: responses[index].rationale  // Directly using parsed JSON field
                 }
             }));
-    
+
             setRows(updatedRows);
             setLoading(false)
         } catch (error) {
@@ -215,23 +240,22 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
     };
     return (
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
-            <IterationStepsComponent></IterationStepsComponent>
+            <IterationStepsComponent count={count.toString()} ></IterationStepsComponent>
             <Stack direction="column" spacing={2} sx={{ width: "50%" }}>
                 <ExpandableTextField
                     value={constitution}
-                    onChange={(e:any) => setConstitution(e.target.value)}
+                    onChange={(e: any) => setConstitution(e.target.value)}
                 />
-
                 <Button
                     variant="contained"
                     className="bg-purple-950 text-white hover:bg-purple-1000"
                     onClick={handleRunModel}
                     disabled={hasRun}
-                    
+
                 >
                     Run Model
                 </Button>
-                {hasRun && loading && <CircularProgress sx={{flex:1, justifyContent:"center"}}></CircularProgress>}
+                {hasRun && loading && <CircularProgress sx={{ flex: 1, justifyContent: "center" }}></CircularProgress>}
                 {hasRun && !loading && (
                     <Stack direction={"column"} spacing={1}>
                         <Typography variant="h6" sx={{ mt: 2 }}>
@@ -267,18 +291,17 @@ export default function IterationComponent({ dataset, count, c, setIterations}: 
                     variant="contained"
                     disabled={!hasRun && !modelAccuracy}
                     onClick={() => {
-                        setIterations((p) => [
-                            ...p,
+                        setIterations(
                             {
                                 responses: rows,
-                                count:1,
+                                count: 1,
                                 const: constitution,
-                                accuracy:modelAccuracy!
+                                accuracy: modelAccuracy!
                             }
-                        ]);
+                        );
                     }}
-                    
-                    >
+
+                >
                     Continue to next step
                 </Button>
             </Stack>

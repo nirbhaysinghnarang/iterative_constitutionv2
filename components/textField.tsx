@@ -30,7 +30,7 @@ function ExpandableTextField({ value, onChange }:any) {
                 value={value}
                 fullWidth
                 onClick={handleOpen}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, width:'100%' }}
             />
             <Modal
                 open={open}

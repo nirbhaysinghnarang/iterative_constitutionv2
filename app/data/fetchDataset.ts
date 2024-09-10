@@ -11,7 +11,7 @@ export async function getData(): Promise<Dataset> {
     const fileContent = await fs.readFile(filePath, "utf8");
     const parsedData = Papa.parse(fileContent, { header: true }).data;
 
-    const scenarios: scenario[] = parsedData.map((row: any) => ({
+    const scenarios: scenario[] = parsedData.slice(0,5).map((row: any) => ({
       description: row["context"],
       choiceA: row["action1"],
       choiceB: row["action2"],
