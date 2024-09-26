@@ -28,7 +28,7 @@ export default async function SurveyCollection() {
         {!data && <div className="py-6 font-bold bg-purple-950 text-center">
          Iterative Constitution
         </div>}
-       {data && <SurveyClient numIterations={2} dataset={data}/>}
+       {data && <SurveyClient dataset={data}/>}
        </div>
        </div>
   );

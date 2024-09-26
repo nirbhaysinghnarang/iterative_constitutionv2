@@ -9,10 +9,12 @@ import { invokeLLM } from "@/app/lm/invokeLM";
 import { CircularProgress } from "@mui/material";
 import ExpandableTextField from "../textField";
 type IterationProps = {
-    dataset: Baseline[],
+    trainDataset: Baseline[],
+    testDataset: Baseline[],
     c: string | null
     count: number,
-    setIterations: (i:Iteration)=>void
+    nextIteration: (i:Iteration)=>void,
+    finalIteration: (i:Iteration)=>void
 
 }
 export const IterationStepsComponent = ({ count }: { count: string }) => {
@@ -32,7 +34,7 @@ export const IterationStepsComponent = ({ count }: { count: string }) => {
 
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                 <ListItem>
-                    <ListItemText primary="1. Enter your moral constitution" />
+                    <ListItemText primary="1. Check your moral constitution for any Inconsistencies" />
                 </ListItem>
                 <ListItem>
                     <ListItemText primary="2. Run the LM" />
@@ -89,15 +91,17 @@ export function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-export default function IterationComponent({ dataset, count, c, setIterations }: IterationProps) {
+export default function IterationComponent({ trainDataset, testDataset, count, c, nextIteration, finalIteration }: IterationProps) {
 
     const [hasRun, setHasRun] = useState(false);
 
 
     const [constitution, setConstitution] = useState(c ? c : "")
-    const [rows, setRows] = useState<Row[]>(dataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
+    const [trainRows, setTrainRows] = useState<Row[]>(trainDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
+    const [testRows, setTestRows] = useState<Row[]>(testDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
+
     const [baselineResults, setBaselineResults] = useState<Baseline[]>(
-        dataset.map(row => { return { ...row, userResponse: null } })
+        trainDataset.map(row => { return { ...row, userResponse: null } })
     );
     const [numFilled, setNumFilled] = useState(0);
 
@@ -110,13 +114,13 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
     const filteredRows = useMemo(() => {
         switch (filter) {
             case 'yes':
-                return rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse);
+                return trainRows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse);
             case 'no':
-                return rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice !== row.userResponse);
+                return trainRows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice !== row.userResponse);
             default:
-                return rows;
+                return trainRows;
         }
-    }, [rows, filter]);
+    }, [trainRows, filter]);
 
 
     const datagridCols = [
@@ -183,7 +187,7 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
         setLoading(true)
         setHasRun(true);
         try {
-            const responses = await Promise.all(dataset.map((scenario: any) => {
+            const responses = await Promise.all(trainDataset.map((scenario: any) => {
                 return invokeLLM({
                     scenario: scenario.description,
                     constitution: constitution,
@@ -191,7 +195,7 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
                     actionB: scenario.choiceB,
                 });
             }));
-            const updatedRows = rows.map((row, index) => ({
+            const updatedRows = trainRows.map((row, index) => ({
                 ...row,
                 lmResponse: {
                     choice: responses[index].choice,  // Directly using parsed JSON field
@@ -199,7 +203,7 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
                 }
             }));
 
-            setRows(updatedRows);
+            setTrainRows(updatedRows);
             setLoading(false)
         } catch (error) {
             console.error("Failed to run model:", error);
@@ -212,8 +216,8 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
     const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
 
     const calculateModelAccuracy = () => {
-        const matchingResponses = rows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse).length;
-        const totalResponses = rows.filter(row => row.userResponse != null).length; // Only consider rows where user has responded
+        const matchingResponses = trainRows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse).length;
+        const totalResponses = trainRows.filter(row => row.userResponse != null).length; // Only consider rows where user has responded
         const accuracy = totalResponses > 0 ? (matchingResponses / totalResponses) * 100 : 0;
         setModelAccuracy(accuracy);
     };
@@ -222,7 +226,7 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
         if (hasRun) {
             calculateModelAccuracy();
         }
-    }, [rows, hasRun]);
+    }, [trainRows, hasRun]);
 
 
     useEffect(() => {
@@ -275,7 +279,7 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
                     </Stack>
                 )}
             </Stack>
-            {dataset && <DataGrid
+            {trainDataset && <DataGrid
                 rows={filteredRows}
                 rowHeight={300}
                 columns={datagridCols}
@@ -291,9 +295,9 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
                     variant="contained"
                     disabled={!hasRun && !modelAccuracy}
                     onClick={() => {
-                        setIterations(
+                        nextIteration(
                             {
-                                responses: rows,
+                                responses: trainRows,
                                 count: 1,
                                 const: constitution,
                                 accuracy: modelAccuracy!
@@ -302,7 +306,25 @@ export default function IterationComponent({ dataset, count, c, setIterations }:
                     }}
 
                 >
-                    Continue to next step
+                    Continute Iterating on the Constitution
+                </Button>
+                <Button
+                    className="bg-purple-950 text-white hover:bg-purple-1000"
+                    variant="contained"
+                    disabled={!hasRun && !modelAccuracy}
+                    onClick={() => {
+                        finalIteration(
+                            {
+                                responses: trainRows,
+                                count: 1,
+                                const: constitution,
+                                accuracy: modelAccuracy!
+                            }
+                        );
+                    }}
+
+                >
+                    Finished Iterating on the Constitution
                 </Button>
             </Stack>
 

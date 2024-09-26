@@ -13,6 +13,7 @@ interface FinalComponentProps {
     c: constitution,
     iterations: Iteration[],
     testIndices: number[],
+    trainIndices: number[],
     dataset: Dataset,
     baseline: Baseline[]
 }
@@ -126,7 +127,7 @@ const datagridCols = [
 
 
 ]
-export default function FinalComponent({ c, iterations, testIndices, dataset, baseline }: FinalComponentProps) {
+export default function FinalComponent({ c, iterations, testIndices, trainIndices, dataset, baseline }: FinalComponentProps) {
 
     const [rows, setRows] = useState<Row[]>(baseline.filter((b, i) => testIndices.includes(i)).map(r => {
         return { ...r, lmResponse: null }
@@ -141,6 +142,7 @@ export default function FinalComponent({ c, iterations, testIndices, dataset, ba
     const calculateAccuracy = (rows: Row[]) => {
         const total = rows.length;
         const correct = rows.filter(row => row.lmResponse?.choice === row.userResponse).length;
+        const incorrect = rows.filter(row => row.lmResponse?.choice != row.userResponse).length;
         return total > 0 ? (correct / total) * 100 : 0;
     };
 
