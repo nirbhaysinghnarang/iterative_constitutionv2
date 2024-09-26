@@ -200,12 +200,6 @@ export default function IterationComponent({
 
     const [testAcc, setTestAcc] = useState(0)
 
-    useEffect(()=>{
-        if(testAcc!=0){
-            alert(testAcc)
-        }
-    })
-
     const handleRunModel = async () => {
         setLoading(true)
         setHasRun(true);

@@ -31,10 +31,10 @@ export async function publishResults(results: SurveyResults | null) {
         'uid': userData.user.id,
         'iteration_acc': JSON.stringify(results?.iterations.map(it => it.accuracy)),
         'iteration_const':JSON.stringify(results?.iterations.map(it => it.const)),
-        'iteration_acc_test':JSON.stringify(results?.iterations.map(it => it.accuracy)),
+        'iteration_acc_test':JSON.stringify(results?.iterations.map(it => it.test_accuracy)),
         'final_constitution':results?.constitution,
-        'final_accuracy_test':results?.modelAccuracy,
-        'final_accuracy_train':results?.modelAccuracy,
+        'final_accuracy_test':results?.modelTestAccuracy,
+        'final_accuracy_train':results?.modelTrainAccuracy,
     }).select();
 
     console.log('Insert successful:', data);

@@ -9,6 +9,7 @@ import { GridRenderEditCellParams } from "@mui/x-data-grid/models/params/gridCel
 import { capitalizeFirstLetter, renderCellWithTooltip } from "./iteration";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { publishResults } from "@/app/publish/publish.client";
+import test from "node:test";
 
 interface FinalComponentProps {
     c: constitution,
@@ -174,7 +175,9 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
                 iterations: iterations,
                 constitution: c,
                 initialRows: baseline,
-                modelAccuracy: calculateAccuracy(updatedRows)
+                modelTrainAccuracy: trainAcc!,
+                modelTestAccuracy: testAcc!
+
             }
         )
 
@@ -237,9 +240,9 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
             {accuracy !== null && (
                 <div>
                 <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Model Overall Accuracy: {accuracy.toFixed(2)}% {"\n"} 
-                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  {"\n"}
-                    Model Test Accuracy: {testAcc!.toFixed(2)}%  {"\n"}
+                    <div>Final Model Overall Accuracy: {accuracy.toFixed(2)}% {"\n"} </div>
+                    <div>Final Model Train Accuracy: {trainAcc!.toFixed(2)}%  {"\n"}</div>
+                    <div>Final Model Test Accuracy: {testAcc!.toFixed(2)}%  {"\n"}</div>
                 </Typography>
                 <Typography variant="h6" style={{ marginTop: 20 }}>
                     Iteration Based Accuracies:{"\n"}
@@ -247,8 +250,8 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
                         {iterations.map((iteration, index) => (
                             <div key={index}>
                                 <strong>Iteration {index}:</strong>{"\n"}
-                                Train Accuracy: {iteration.accuracy}{"\n"}
-                                Test Accuracy: {iteration.test_accuracy}{"\n"}
+                                Train Accuracy: {iteration.accuracy.toFixed(2)}%{"\n"}
+                                Test Accuracy: {iteration.test_accuracy.toFixed(2)}%{"\n"}
                             </div>
                         ))}
                     </div>
