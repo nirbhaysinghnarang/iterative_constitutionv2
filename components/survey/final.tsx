@@ -236,9 +236,9 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
 
             {accuracy !== null && (
                 <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Model Overall Accuracy: {accuracy.toFixed(2)}%  <br> </br>
-                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  <br> </br>
-                    Model Test Accuracy: {testAcc!.toFixed(2)}%  <br> </br>
+                    Model Overall Accuracy: {accuracy.toFixed(2)}%  
+                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  
+                    Model Test Accuracy: {testAcc!.toFixed(2)}%  
                 </Typography>
 
             )}
@@ -289,9 +289,9 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
                     <div>
                         {iterations.map((iteration, index) => (
                             <div key={index}>
-                                <strong>Iteration {index}:</strong><br />
-                                Train Accuracy: {iteration.accuracy}<br />
-                                Test Accuracy: {iteration.test_accuracy}<br /><br />
+                                <strong>Iteration {index}:</strong>
+                                Train Accuracy: {iteration.accuracy}
+                                Test Accuracy: {iteration.test_accuracy}
                             </div>
                         ))}
                     </div>
