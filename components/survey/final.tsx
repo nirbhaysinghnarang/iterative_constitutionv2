@@ -235,11 +235,25 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
             </Button>
 
             {accuracy !== null && (
+                <div>
                 <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Model Overall Accuracy: {accuracy.toFixed(2)}%  
-                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  
-                    Model Test Accuracy: {testAcc!.toFixed(2)}%  
+                    Model Overall Accuracy: {accuracy.toFixed(2)}% {"\n"} 
+                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  {"\n"}
+                    Model Test Accuracy: {testAcc!.toFixed(2)}%  {"\n"}
                 </Typography>
+                <Typography variant="h6" style={{ marginTop: 20 }}>
+                    Iteration Based Accuracies:{"\n"}
+                    <div>
+                        {iterations.map((iteration, index) => (
+                            <div key={index}>
+                                <strong>Iteration {index}:</strong>{"\n"}
+                                Train Accuracy: {iteration.accuracy}{"\n"}
+                                Test Accuracy: {iteration.test_accuracy}{"\n"}
+                            </div>
+                        ))}
+                    </div>
+                </Typography>
+                </div>
 
             )}
 
@@ -276,7 +290,7 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
             </Button>
         </Stack>
         <DataGrid
-            rows={rows}
+            rows={filteredRows}
             columns={datagridCols}
             pagination={true}
             rowHeight={300}
@@ -284,18 +298,7 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
         </div>
     )
 }
-                <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Iteration Based Accuracies:
-                    <div>
-                        {iterations.map((iteration, index) => (
-                            <div key={index}>
-                                <strong>Iteration {index}:</strong>
-                                Train Accuracy: {iteration.accuracy}
-                                Test Accuracy: {iteration.test_accuracy}
-                            </div>
-                        ))}
-                    </div>
-                </Typography>
+                
         </div >
     );
 }
