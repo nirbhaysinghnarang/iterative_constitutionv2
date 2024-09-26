@@ -8,13 +8,19 @@ import { EditableChipCell, RenderChipCell } from "./step-1";
 import { invokeLLM } from "@/app/lm/invokeLM";
 import { CircularProgress } from "@mui/material";
 import ExpandableTextField from "../textField";
+
+
 type IterationProps = {
     trainDataset: Baseline[],
     testDataset: Baseline[],
     c: string | null
-    count: number,
+    count: number, //index+1
     nextIteration: (i:Iteration)=>void,
-    finalIteration: (i:Iteration)=>void
+    finalIteration: (i:Iteration)=>void,
+    setIterations: (i: Iteration[]) =>void
+
+    //when we change a choice
+    //iterations[count-1].choice = new choice
 
 }
 export const IterationStepsComponent = ({ count }: { count: string }) => {
@@ -91,7 +97,16 @@ export function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-export default function IterationComponent({ trainDataset, testDataset, count, c, nextIteration, finalIteration }: IterationProps) {
+export default function IterationComponent({ 
+    trainDataset,
+     testDataset, 
+     count, 
+     c, 
+     nextIteration, 
+     finalIteration,
+     setIterations
+
+}: IterationProps) {
 
     const [hasRun, setHasRun] = useState(false);
 
@@ -100,9 +115,8 @@ export default function IterationComponent({ trainDataset, testDataset, count, c
     const [trainRows, setTrainRows] = useState<Row[]>(trainDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
     const [testRows, setTestRows] = useState<Row[]>(testDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
 
-    const [baselineResults, setBaselineResults] = useState<Baseline[]>(
-        trainDataset.map(row => { return { ...row, userResponse: null } })
-    );
+
+    
     const [numFilled, setNumFilled] = useState(0);
 
     const [filter, setFilter] = useState('all');
@@ -183,6 +197,14 @@ export default function IterationComponent({ trainDataset, testDataset, count, c
 
 
 
+    const [testAcc, setTestAcc] = useState(0)
+
+    useEffect(()=>{
+        if(testAcc!=0){
+            alert(testAcc)
+        }
+    })
+
     const handleRunModel = async () => {
         setLoading(true)
         setHasRun(true);
@@ -203,18 +225,65 @@ export default function IterationComponent({ trainDataset, testDataset, count, c
                 }
             }));
 
+
+
             setTrainRows(updatedRows);
             setLoading(false)
+
+
+
         } catch (error) {
             console.error("Failed to run model:", error);
             // Handle errors appropriately in your UI
         }
+
+
+        try {
+            //MARK:Change to testDataset
+            const responses = await Promise.all(testDataset.map((scenario: any) => {
+                return invokeLLM({
+                    scenario: scenario.description,
+                    constitution: constitution,
+                    actionA: scenario.choiceA,
+                    actionB: scenario.choiceB,
+                });
+            }));
+
+            //MARK:Change to testRows
+            const updatedTestRows = testRows.map((row, index) => ({
+                ...row,
+                lmResponse: {
+                    choice: responses[index].choice,  // Directly using parsed JSON field
+                    rationale: responses[index].rationale  // Directly using parsed JSON field
+                }
+            }));
+
+
+            console.log(updatedTestRows)
+            setTestAcc(calculateAccuracy(updatedTestRows))
+
+
+        } catch (error) {
+            console.error("Failed to run model:", error);
+            // Handle errors appropriately in your UI
+        }
+
+
+
+
     };
 
     const [loading, setLoading] = useState(false);
 
     const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
 
+    const calculateAccuracy = (rows: Row[]) => {
+        const total = rows.length;
+        const correct = rows.filter(row => row.lmResponse?.choice === row.userResponse).length;
+        const incorrect = rows.filter(row => row.lmResponse?.choice != row.userResponse).length;
+        return total > 0 ? (correct / total) * 100 : 0;
+    };
+    
     const calculateModelAccuracy = () => {
         const matchingResponses = trainRows.filter(row => row.lmResponse && row.userResponse && row.lmResponse.choice === row.userResponse).length;
         const totalResponses = trainRows.filter(row => row.userResponse != null).length; // Only consider rows where user has responded
@@ -229,19 +298,18 @@ export default function IterationComponent({ trainDataset, testDataset, count, c
     }, [trainRows, hasRun]);
 
 
-    useEffect(() => {
-        if (baselineResults) {
-            setNumFilled(baselineResults.filter(r => r.userResponse !== null).length)
-        }
-    }, [baselineResults])
+
 
     const handleProcessRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
-        const updatedRows = baselineResults.map(row =>
-            row.id === newRow.id ? { ...row, ...newRow } : row
-        );
-        setBaselineResults(updatedRows);
+        const updatedRows = trainRows.map(row => row.id === newRow.id ? newRow : row);
+        setTrainRows(updatedRows as Row[])
         return newRow;
     };
+
+
+
+
+
     return (
         <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
             <IterationStepsComponent count={count.toString()} ></IterationStepsComponent>
@@ -304,7 +372,6 @@ export default function IterationComponent({ trainDataset, testDataset, count, c
                             }
                         );
                     }}
-
                 >
                     Continute Iterating on the Constitution
                 </Button>

@@ -11,12 +11,14 @@ type SurveyClientProps = {
 }
 
 export default function SurveyClient({ dataset }: SurveyClientProps) {
+
+
   const { trainIdx, testIdx, scenarios } = dataset;
 
-const getStepnum = (step: number):string => {
-  if (step > -1) return `Step ${step}`;
-  else return "Final Step"
-}
+  const getStepnum = (step: number):string => {
+    if (step > -1) return `Step ${step}`;
+    else return "Final Step"
+  }
 
   const getStepDescription = (step: number): string => {
     if (step === 1) return "What would you do? Baseline data collection";
@@ -71,15 +73,28 @@ const getStepnum = (step: number):string => {
         return (
           <IterationComponent
             key={`iteration-${iterationIndex}`}
+
             c={iterationIndex === 0 ? constitution : iterations[iterationIndex - 1].const}
-            trainDataset={iterationIndex === 0 
+
+
+            trainDataset={
+              iterationIndex === 0 
               ? baselineResults.filter((v, i) => trainIdx.includes(i)) 
-              : iterations[iterationIndex - 1].responses}
-            testDataset={iterationIndex === 0 
+              : iterations[iterationIndex - 1].responses
+            }
+
+
+            testDataset={
+              iterationIndex === 0 
                 ? baselineResults.filter((v, i) => testIdx.includes(i)) 
-                : iterations[iterationIndex - 1].responses}
+                : iterations[iterationIndex - 1].responses
+              }
+
+
             count={iterationIndex + 1}
             nextIteration={handleNextIteration}
+
+            setIterations={setIterations}
             finalIteration={handleFinalIteration}
           />
         );

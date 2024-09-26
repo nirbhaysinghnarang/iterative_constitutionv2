@@ -11,7 +11,7 @@ interface invokeLMProps{
     actionB:string,
 }
 export async function invokeLLM({ scenario, constitution, actionA, actionB }:invokeLMProps) {
-    const chatModel = new ChatOpenAI({openAIApiKey:process.env.NEXT_PUBLIC_OPEN_AI_API_KEY, model:'gpt-4o'});
+    const chatModel = new ChatOpenAI({openAIApiKey:process.env.NEXT_PUBLIC_OPEN_AI_API_KEY, model:'gpt-4o', temperature:0});
     const outputParser = new JsonOutputParser();
     const prompt = ChatPromptTemplate.fromTemplate(`
         ${constitution}
@@ -30,7 +30,7 @@ export async function invokeLLM({ scenario, constitution, actionA, actionB }:inv
         constitution:constitution,
         scenario:scenario,
         actionA:actionA,
-        actionB:actionB
+        actionB:actionB,
     });
 
 }
