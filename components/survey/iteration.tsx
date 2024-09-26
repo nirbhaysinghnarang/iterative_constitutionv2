@@ -52,7 +52,7 @@ export const IterationStepsComponent = ({ count }: { count: string }) => {
                     <ListItemText primary="4. (Optional) Edit your existing constitution based on the LM's output" />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary="5. Once satisfied, continue to next iteration." />
+                    <ListItemText primary="5. Once satisfied with your changes, you can choose to continue iterating, or move on to the final evaluation.." />
                 </ListItem>
             </List>
         </div>)
