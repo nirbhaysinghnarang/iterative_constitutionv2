@@ -27,15 +27,14 @@ export async function publishResults(results: SurveyResults | null) {
 
 
 
-    const { data: surveyData, error: surveyError } = await supabase.from('surveyruns').insert({
-        'userid': userData.user.id,
-        'iteration_1_acc': results?.iterations[0].accuracy,
-        'iteration_1_constitution': results?.iterations[1].const,
-        'iteration_2_acc': results?.iterations[1].accuracy,
-        'iteration_2_constitution': results?.iterations[1].accuracy,
-        'final_accuracy': results?.modelAccuracy,
-        'final_constitution': results?.constitution
-
+    const { data: surveyData, error: surveyError } = await supabase.from('surveyruns-var').insert({
+        'uid': userData.user.id,
+        'iteration_acc': JSON.stringify(results?.iterations.map(it => it.accuracy)),
+        'iteration_const':JSON.stringify(results?.iterations.map(it => it.const)),
+        'iteration_acc_test':JSON.stringify(results?.iterations.map(it => it.accuracy)),
+        'final_constitution':results?.constitution,
+        'final_accuracy_test':results?.modelAccuracy,
+        'final_accuracy_train':results?.modelAccuracy,
     }).select();
 
     console.log('Insert successful:', data);
@@ -47,7 +46,7 @@ export async function publishResults(results: SurveyResults | null) {
     if (insertError) { throw insertError }
 
     if (data && surveyData) {
-        const storageId = (data[0].upload_id! as any);  // Adjust the indexing based on your actual data structure
+        const storageId = (data[0].upload_id! as any);  
         if (results) {
             const bucketName = 'public_survey_results';
             const filePath = `${storageId}.json`;
@@ -56,8 +55,8 @@ export async function publishResults(results: SurveyResults | null) {
             const { error: uploadError } = await supabase.storage
                 .from(bucketName)
                 .upload(filePath, jsonString, {
-                    contentType: 'application/json',  // Set the MIME type as JSON
-                    upsert: true  // Set to true to overwrite existing files with the same path
+                    contentType: 'application/json',  
+                    upsert: true  
                 });
 
             if (uploadError) {
