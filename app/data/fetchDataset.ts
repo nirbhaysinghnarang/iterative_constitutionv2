@@ -2,13 +2,13 @@ import Papa from "papaparse";
 import { promises as fs } from "fs";
 import { Dataset, GenerationRule, scenario } from "../typing/types";
 export async function getData(): Promise<Dataset> {
-  const trainSize = 5;
-  const testSize = 5;
+  const trainSize = 40;
+  const testSize = 20;
   try {
     const filePath = `${process.cwd()}/app/data/refined_dataset.csv`;
     const fileContent = await fs.readFile(filePath, "utf8");
     const parsedData = Papa.parse(fileContent, { header: true }).data;
-    const scenarios: scenario[] = parsedData.slice(0,10).map((row: any) => ({
+    const scenarios: scenario[] = parsedData.map((row: any) => ({
       description: row["context"],
       choiceA: row["action1"],
       choiceB: row["action2"],
