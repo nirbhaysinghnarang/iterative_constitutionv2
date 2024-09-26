@@ -175,8 +175,8 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
                 iterations: iterations,
                 constitution: c,
                 initialRows: baseline,
-                modelTrainAccuracy: trainAcc!,
-                modelTestAccuracy: testAcc!
+                modelTrainAccuracy: calculateAccuracy(updatedRows.filter((b, i) => trainIndices.includes(i))),
+                modelTestAccuracy: calculateAccuracy(updatedRows.filter((b, i) => testIndices.includes(i)))
 
             }
         )
