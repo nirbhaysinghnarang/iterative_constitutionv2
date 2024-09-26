@@ -1,8 +1,9 @@
 import { invokeLLM } from "@/app/lm/invokeLM";
 import { Baseline, Dataset, Iteration, LMResponse, Row, SurveyResults, constitution } from "@/app/typing/types";
 import { TextField, Typography, Button, Chip, CircularProgress } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react"
 import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import { RenderChipCell, EditableChipCell } from "./step-1";
 import { GridRenderEditCellParams } from "@mui/x-data-grid/models/params/gridCellParams";
 import { capitalizeFirstLetter, renderCellWithTooltip } from "./iteration";
@@ -129,11 +130,13 @@ const datagridCols = [
 ]
 export default function FinalComponent({ c, iterations, testIndices, trainIndices, dataset, baseline }: FinalComponentProps) {
 
-    const [rows, setRows] = useState<Row[]>(baseline.filter((b, i) => testIndices.includes(i)).map(r => {
+    const [rows, setRows] = useState<Row[]>(baseline.map(r => {
         return { ...r, lmResponse: null }
     }));
     const [loading, setLoading] = useState(false);
     const [accuracy, setAccuracy] = useState<number | null>(null);
+    const [testAcc, setTestAcc] = useState<number | null>(null);
+    const [trainAcc, setTrainAcc] = useState<number | null>(null);
 
     const [suc, setSuc] = useState(false)
 
@@ -142,11 +145,10 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
     const calculateAccuracy = (rows: Row[]) => {
         const total = rows.length;
         const correct = rows.filter(row => row.lmResponse?.choice === row.userResponse).length;
-        const incorrect = rows.filter(row => row.lmResponse?.choice != row.userResponse).length;
         return total > 0 ? (correct / total) * 100 : 0;
     };
 
-    const handleRunTestSet = async () => {
+    const handleRunDataSet = async () => {
         setLoading(true);
         const responses = await Promise.all(rows.map(row => invokeLLM({
             scenario: row.description,
@@ -163,6 +165,8 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
 
         setRows(updatedRows);
         setAccuracy(calculateAccuracy(updatedRows));
+        setTestAcc(calculateAccuracy(updatedRows.filter((b, i) => testIndices.includes(i))));
+        setTrainAcc(calculateAccuracy(updatedRows.filter((b, i) => trainIndices.includes(i))));
         setLoading(false);
 
         setRes(
@@ -175,7 +179,25 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
         )
 
 
+
     };
+
+    const [filter, setFilter] = useState('all');
+
+    const handleFilterChange = (newFilter: string) => {
+        setFilter(newFilter);
+    };
+
+    const filteredRows = useMemo(() => {
+        switch (filter) {
+            case 'train':
+                return rows.filter((b, i) => trainIndices.includes(i));
+            case 'test':
+                return rows.filter((b, i) => testIndices.includes(i));
+            default:
+                return rows;
+        }
+    }, [rows, filter]);
 
     if (suc) {
         return <div className="flex-1 w-full flex flex-col gap-20 items-center p-10">
@@ -186,6 +208,9 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
         </div>
 
     }
+
+
+
 
 
     return (
@@ -203,15 +228,17 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
             <Button
                 variant="contained"
                 className="bg-purple-950 text-white hover:bg-purple-1000"
-                onClick={handleRunTestSet}
+                onClick={handleRunDataSet}
                 disabled={loading}
             >
-                {loading ? <CircularProgress size={24} /> : "Run on Test Set"}
+                {loading ? <CircularProgress size={24} /> : "Run on Full Data Set"}
             </Button>
 
             {accuracy !== null && (
                 <Typography variant="h6" style={{ marginTop: 20 }}>
-                    Model Accuracy: {accuracy.toFixed(2)}%
+                    Model Overall Accuracy: {accuracy.toFixed(2)}%  <br> </br>
+                    Model Train Accuracy: {trainAcc!.toFixed(2)}%  <br> </br>
+                    Model Test Accuracy: {testAcc!.toFixed(2)}%  <br> </br>
                 </Typography>
 
             )}
@@ -234,15 +261,41 @@ export default function FinalComponent({ c, iterations, testIndices, trainIndice
 }
 
 {
+    
     rows.length > 0 && (
+        <div>
+        <Stack direction="row" spacing={2}>
+            <Button variant="outlined" onClick={() => handleFilterChange('all')} color="primary">
+                All
+            </Button>
+            <Button variant="outlined" onClick={() => handleFilterChange('train')} color="secondary">
+                Train
+            </Button>
+            <Button variant="outlined" onClick={() => handleFilterChange('test')} color="error">
+                Test
+            </Button>
+        </Stack>
         <DataGrid
             rows={rows}
             columns={datagridCols}
             pagination={true}
             rowHeight={300}
         />
+        </div>
     )
 }
+                <Typography variant="h6" style={{ marginTop: 20 }}>
+                    Iteration Based Accuracies:
+                    <div>
+                        {iterations.map((iteration, index) => (
+                            <div key={index}>
+                                <strong>Iteration {index}:</strong><br />
+                                Train Accuracy: {iteration.accuracy}<br />
+                                Test Accuracy: {iteration.test_accuracy}<br /><br />
+                            </div>
+                        ))}
+                    </div>
+                </Typography>
         </div >
     );
 }

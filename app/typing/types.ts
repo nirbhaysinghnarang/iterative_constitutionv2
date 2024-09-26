@@ -62,7 +62,10 @@ export type Iteration = {
     const:constitution
     count: number,        // Count of scenarios considered in this iteration
     responses: Row[],
-    accuracy:number      // Array of 'Row' objects containing responses to each scenario
+    test_responses: Row[],
+    accuracy:number,      // Array of 'Row' objects containing responses to each scenario
+    test_accuracy: number,
+    init_const: string
 };
 
 // Define 'SurveyResults' as an array of 'Iteration' objects, plus initial and final results representing multiple rounds of survey data

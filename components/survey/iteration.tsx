@@ -112,6 +112,7 @@ export default function IterationComponent({
 
 
     const [constitution, setConstitution] = useState(c ? c : "")
+    const init_const = c ? c : ""
     const [trainRows, setTrainRows] = useState<Row[]>(trainDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
     const [testRows, setTestRows] = useState<Row[]>(testDataset.map((scenario, index) => { return { ...scenario, lmResponse: null } }));
 
@@ -261,6 +262,7 @@ export default function IterationComponent({
 
             console.log(updatedTestRows)
             setTestAcc(calculateAccuracy(updatedTestRows))
+            setTestRows(updatedTestRows)
 
 
         } catch (error) {
@@ -363,14 +365,29 @@ export default function IterationComponent({
                     variant="contained"
                     disabled={!hasRun && !modelAccuracy}
                     onClick={() => {
+                        console.log({
+                            responses: trainRows,
+                            test_responses: testRows,
+                            count: 1,
+                            const: constitution,
+                            accuracy: modelAccuracy!,
+                            test_accuracy: testAcc,
+                            init_const: init_const
+
+                        });
                         nextIteration(
                             {
                                 responses: trainRows,
+                                test_responses: testRows,
                                 count: 1,
                                 const: constitution,
-                                accuracy: modelAccuracy!
+                                accuracy: modelAccuracy!,
+                                test_accuracy: testAcc,
+                                init_const: init_const
+
                             }
                         );
+                        
                     }}
                 >
                     Continute Iterating on the Constitution
@@ -380,12 +397,25 @@ export default function IterationComponent({
                     variant="contained"
                     disabled={!hasRun && !modelAccuracy}
                     onClick={() => {
+                        console.log({
+                            responses: trainRows,
+                            test_responses: testRows,
+                            count: 1,
+                            const: constitution,
+                            accuracy: modelAccuracy!,
+                            test_accuracy: testAcc,
+                            init_const: init_const
+
+                        });
                         finalIteration(
                             {
                                 responses: trainRows,
+                                test_responses: testRows,
                                 count: 1,
                                 const: constitution,
-                                accuracy: modelAccuracy!
+                                accuracy: modelAccuracy!,
+                                test_accuracy: testAcc,
+                                init_const: init_const
                             }
                         );
                     }}
